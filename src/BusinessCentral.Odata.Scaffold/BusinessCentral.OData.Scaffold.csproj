@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- We target .NET 8 as this is a developer tool and can require a modern SDK -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- This is the magic that makes it a .NET Global Tool -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-bc-scaffold</ToolCommandName>
+    
+    <!-- NuGet Package Properties -->
+    <IsPackable>true</IsPackable>
+    <PackageId>BusinessCentral.OData.Scaffold</PackageId>
+    <Version>1.0.0</Version>
+    <Title>Business Central OData POCO Scaffolder</Title>
+    <Authors>Your Name</Authors>
+    <Description>A .NET Global Tool to scaffold C# POCO classes from the Microsoft Dynamics 365 Business Central OData $metadata endpoint.</Description>
+    <PackageProjectUrl>https://github.com/your-username/BCOdataPowerTools</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/your-username/BCOdataPowerTools.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>scaffold;codegen;odata;business-central;dynamics-365;d365</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.CommandLine is the modern, recommended way to build command-line apps -->
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+</Project>

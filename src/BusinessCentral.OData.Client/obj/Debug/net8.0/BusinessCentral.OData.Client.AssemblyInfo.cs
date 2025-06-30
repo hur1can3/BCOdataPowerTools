@@ -13,10 +13,10 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Your Name")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright (c) Your Company 2025")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute(("A modern, resilient, and extensible .NET client for interacting with the Microsof" +
-    "t Dynamics 365 Business Central OData API."))]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("A modern, resilient, and extensible .NET client for interacting with the Microsof" +
+    "t Dynamics 365 Business Central OData API.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90627bcd5f7a5b66d3f1eb4b0d4ee869ae5c3f91")]
 [assembly: System.Reflection.AssemblyProductAttribute("BusinessCentral.OData.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BusinessCentral.OData.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

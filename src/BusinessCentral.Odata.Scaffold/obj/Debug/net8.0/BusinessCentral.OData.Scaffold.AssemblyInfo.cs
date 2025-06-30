@@ -12,10 +12,10 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("Your Name")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute(("A .NET Global Tool to scaffold C# POCO classes from the Microsoft Dynamics 365 Bu" +
-    "siness Central OData $metadata endpoint."))]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("A .NET Global Tool to scaffold C# POCO classes from the Microsoft Dynamics 365 Bu" +
+    "siness Central OData $metadata endpoint.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90627bcd5f7a5b66d3f1eb4b0d4ee869ae5c3f91")]
 [assembly: System.Reflection.AssemblyProductAttribute("BusinessCentral.OData.Scaffold")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BusinessCentral.OData.Scaffold")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

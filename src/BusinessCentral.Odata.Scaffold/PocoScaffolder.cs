@@ -50,6 +50,7 @@ public class PocoScaffolder : IPocoScaffolder
         {
             _includeSet = new HashSet<string>(_options.IncludeProperties.Split(','), StringComparer.OrdinalIgnoreCase);
         }
+
         if (!string.IsNullOrWhiteSpace(_options.ExcludeProperties))
         {
             _excludeSet = new HashSet<string>(_options.ExcludeProperties.Split(','), StringComparer.OrdinalIgnoreCase);
@@ -84,6 +85,7 @@ public class PocoScaffolder : IPocoScaffolder
             foreach (var entity in entities)
             {
                 var classCode = GenerateClassCode(entity);
+
                 // Only write the file if there are properties to generate
                 if (!string.IsNullOrWhiteSpace(classCode))
                 {
@@ -92,7 +94,7 @@ public class PocoScaffolder : IPocoScaffolder
                     filesWritten++;
                 }
             }
-            
+
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"\nScaffolding complete! Wrote {filesWritten} C# class files.");
             Console.ResetColor();
@@ -125,7 +127,7 @@ public class PocoScaffolder : IPocoScaffolder
             var entity = new EntityInfo
             {
                 Name = type.Attribute("Name")?.Value ?? string.Empty,
-                Properties = new List<PropertyInfo>()
+                Properties = new List<PropertyInfo>(),
             };
 
             var properties = type.Descendants(edm + "Property");
@@ -134,14 +136,16 @@ public class PocoScaffolder : IPocoScaffolder
                 entity.Properties.Add(new PropertyInfo
                 {
                     Name = prop.Attribute("Name")?.Value ?? string.Empty,
-                    Type = prop.Attribute("Type")?.Value ?? string.Empty
+                    Type = prop.Attribute("Type")?.Value ?? string.Empty,
                 });
             }
+
             entities.Add(entity);
         }
+
         return entities;
     }
-    
+
     private string? GenerateClassCode(EntityInfo entity)
     {
         var sb = new StringBuilder();
@@ -150,9 +154,16 @@ public class PocoScaffolder : IPocoScaffolder
         foreach (var prop in entity.Properties)
         {
             // Filtering logic
-            if (_includeSet != null && !_includeSet.Contains(prop.Name)) continue;
-            if (_excludeSet != null && _excludeSet.Contains(prop.Name)) continue;
-            
+            if (_includeSet != null && !_includeSet.Contains(prop.Name))
+            {
+                continue;
+            }
+
+            if (_excludeSet != null && _excludeSet.Contains(prop.Name))
+            {
+                continue;
+            }
+
             if (!hasProperties)
             {
                 // Lazily write the header only if we have properties to generate
@@ -164,15 +175,15 @@ public class PocoScaffolder : IPocoScaffolder
                 sb.AppendLine("{");
                 hasProperties = true;
             }
-            
+
             var csharpType = MapEdmTypeToCSharpType(prop.Type);
             var csharpPropName = ToPascalCase(prop.Name);
-            
+
             if (csharpPropName != prop.Name)
             {
                 sb.AppendLine($"    [JsonPropertyName(\"{prop.Name}\")]");
             }
-            
+
             sb.AppendLine($"    public {csharpType} {csharpPropName} {{ get; set; }}");
             sb.AppendLine();
         }
@@ -209,13 +220,17 @@ public class PocoScaffolder : IPocoScaffolder
             "Duration" => "System.TimeSpan?",
             "TimeOfDay" => "System.TimeSpan?",
             "Binary" => "byte[]?",
-            _ => "object?" // Fallback for complex types or unknown types
+            _ => "object?", // Fallback for complex types or unknown types
         };
     }
-    
+
     private string ToPascalCase(string input)
     {
-        if (string.IsNullOrEmpty(input)) return input;
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
         var words = Regex.Split(input, @"[_\s-]")
             .Where(s => !string.IsNullOrEmpty(s))
             .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());

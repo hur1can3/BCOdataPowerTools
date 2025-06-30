@@ -12,22 +12,22 @@ public class BusinessCentralClientOptions
     public const string ConfigurationSectionName = "BusinessCentralClient";
 
     /// <summary>
-    /// The base URL of the Business Central environment (e.g., "https://api.businesscentral.dynamics.com").
+    /// Gets or sets the base URL of the Business Central environment (e.g., "https://api.businesscentral.dynamics.com").
     /// </summary>
     public string BaseUrl { get; set; } = "https://api.businesscentral.dynamics.com";
 
     /// <summary>
-    /// The ID of the company (tenant) to interact with.
+    /// Gets or sets the ID of the company (tenant) to interact with.
     /// </summary>
     public string CompanyId { get; set; } = string.Empty;
 
     /// <summary>
-    /// The OData API version to use.
+    /// Gets or sets the OData API version to use.
     /// </summary>
     public string ApiVersion { get; set; } = "v2.0";
 
     /// <summary>
-    //  Custom JSON serialization options. If null, default settings are used.
+    /// Gets or sets custom JSON serialization options. If null, default settings are used.
     /// This allows consumers to override serialization behavior for custom data types.
     /// </summary>
     public System.Text.Json.JsonSerializerOptions? JsonSerializerOptions { get; set; }

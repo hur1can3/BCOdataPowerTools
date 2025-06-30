@@ -12,31 +12,31 @@ namespace BusinessCentral.OData.Client.Models;
 public class ODataResponse<T>
 {
     /// <summary>
-    /// For GET /entityset responses, holds the list of entities.
+    /// Gets or sets for GET /entityset responses, holds the list of entities.
     /// </summary>
     [JsonPropertyName("value")]
     public List<T>? Value { get; set; }
 
     /// <summary>
-    /// The URL to retrieve the next page of results in server-driven pagination.
+    /// Gets or sets the URL to retrieve the next page of results in server-driven pagination.
     /// </summary>
     [JsonPropertyName("@odata.nextLink")]
     public string? NextLink { get; set; }
 
     /// <summary>
-    /// For $batch requests, this holds the collection of individual responses.
+    /// Gets or sets for $batch requests, this holds the collection of individual responses.
     /// </summary>
     [JsonPropertyName("responses")]
     public List<ODataBatchResponse>? BatchResponses { get; set; }
 
     /// <summary>
-    /// The HTTP status code of the response.
+    /// Gets or sets the HTTP status code of the response.
     /// </summary>
     [JsonIgnore]
     public HttpStatusCode StatusCode { get; set; }
 
     /// <summary>
-    /// Indicates whether the HTTP request was successful (2xx status code).
+    /// Gets a value indicating whether indicates whether the HTTP request was successful (2xx status code).
     /// </summary>
     [JsonIgnore]
     public bool IsSuccessStatusCode => (int)StatusCode >= 200 && (int)StatusCode <= 299;
@@ -57,7 +57,7 @@ public class ODataBatchResponse
     public Dictionary<string, string>? Headers { get; set; }
 
     /// <summary>
-    /// The body of the individual batch response. Use the DeserializeBodyAs method to
+    /// Gets or sets the body of the individual batch response. Use the DeserializeBodyAs method to
     /// get a strongly-typed object from this.
     /// </summary>
     [JsonPropertyName("body")]
@@ -82,7 +82,6 @@ public class ODataBatchResponse
     }
 }
 
-
 /// <summary>
 /// Represents the detailed error message structure returned by the Business Central OData API.
 /// </summary>
@@ -94,6 +93,9 @@ public class ODataError
     [JsonPropertyName("message")]
     public string? Message { get; set; }
 }
+
+// Ensure the IsExternalInit class is defined for compatibility with 'required' keyword
+public class IsExternalInit { }
 
 /// <summary>
 /// Represents the top-level object for an OData JSON batch request.

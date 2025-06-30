@@ -32,7 +32,7 @@ public class ODataFilterExpressionVisitor : ExpressionVisitor
         _sb = new StringBuilder();
         Visit(expression.Body);
         var result = _sb.ToString();
-        
+
         _cache.TryAdd(expression, result);
         return result;
     }
@@ -54,7 +54,7 @@ public class ODataFilterExpressionVisitor : ExpressionVisitor
                 return node;
             }
         }
-        
+
         // Handle collection.Contains(item) -> OData 'item in collection'
         if (node.Method.Name == "Contains" && node.Object != null && typeof(IEnumerable).IsAssignableFrom(node.Object.Type))
         {
@@ -68,6 +68,7 @@ public class ODataFilterExpressionVisitor : ExpressionVisitor
                 {
                     values.Add(FormatValue(item));
                 }
+
                 _sb.Append(string.Join(",", values));
                 _sb.Append(')');
                 return node;
@@ -118,7 +119,7 @@ public class ODataFilterExpressionVisitor : ExpressionVisitor
         _sb.Append(FormatValue(value));
         return node;
     }
-    
+
     /// <inheritdoc />
     protected override Expression VisitConstant(ConstantExpression node)
     {
@@ -133,22 +134,29 @@ public class ODataFilterExpressionVisitor : ExpressionVisitor
         return Expression.Lambda(expression).Compile().DynamicInvoke();
     }
 
-    private static string FormatValue(object? value) => value switch
+    private static string FormatValue(object? value)
     {
-        null => "null",
-        string s => $"'{s.Replace("'", "''")}'", // Escape single quotes
-        bool b => b.ToString().ToLowerInvariant(),
-        DateTime dt => dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"),
-        DateTimeOffset dto => dto.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"),
-        Guid guid => guid.ToString(),
-        Enum e => $"'{e.ToString()}'",
-        _ when IsNumeric(value) => value.ToString(),
-        _ => throw new NotSupportedException($"The constant value '{value}' of type '{value?.GetType()}' is not supported in OData queries.")
-    };
-    
+        return value switch
+        {
+            null => "null",
+            string s => $"'{s.Replace("'", "''")}'", // Escape single quotes
+            bool b => b.ToString().ToLowerInvariant(),
+            DateTime dt => dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            DateTimeOffset dto => dto.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            Guid guid => guid.ToString(),
+            Enum e => $"'{e.ToString()}'",
+            _ when IsNumeric(value) => value.ToString() ?? string.Empty, // Ensure non-null return
+            _ => throw new NotSupportedException($"The constant value '{value}' of type '{value?.GetType()}' is not supported in OData queries."),
+        };
+    }
+
     private static bool IsNumeric(object? value)
     {
-        if (value == null) return false;
+        if (value == null)
+        {
+            return false;
+        }
+
         var typeCode = Type.GetTypeCode(value.GetType());
         return typeCode >= TypeCode.SByte && typeCode <= TypeCode.Decimal;
     }

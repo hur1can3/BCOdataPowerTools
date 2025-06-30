@@ -1,7 +1,8 @@
-using BusinessCentral.OData.Client.Querying.Visitors;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text;
+
+using BusinessCentral.OData.Client.Querying.Visitors;
 
 namespace BusinessCentral.OData.Client.Querying;
 
@@ -34,7 +35,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
     /// Accessible by derived classes to allow for custom query option modifications.
     /// </summary>
     protected readonly Dictionary<string, string> _queryParams = new();
-    
+
     /// <summary>
     /// Holds the clauses for the $expand query option.
     /// Accessible by derived classes to allow for custom expand logic.
@@ -45,6 +46,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
     /// Specifies the properties to return using the $select query option.
     /// This method is virtual and can be overridden in a derived class.
     /// </summary>
+    /// <typeparam name="TResult">The type of the result projected by the selector.</typeparam>
     /// <param name="selector">An expression that selects the properties to include.</param>
     /// <example>
     /// builder.Select(c => new { c.No, c.DisplayName })
@@ -60,6 +62,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Selector must be a 'new' expression (e.g., x => new { x.Prop1, x.Prop2 }).", nameof(selector));
         }
+
         return this;
     }
 
@@ -74,7 +77,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         _queryParams["$filter"] = visitor.ToODataFilter(predicate);
         return this;
     }
-    
+
     /// <summary>
     /// Includes a related resource in line with the retrieved resources using the $expand query option.
     /// This method is virtual and can be overridden in a derived class.
@@ -87,7 +90,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Expand selector must be a member property expression.", nameof(navigationProperty));
         }
-        
+
         var propertyName = memberExpression.Member.Name;
 
         if (configure == null)
@@ -101,6 +104,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
             var subQuery = nestedBuilder.ToQueryString().Replace("&", ";");
             _expandClauses.Add($"{propertyName}({subQuery})");
         }
+
         return this;
     }
 
@@ -118,7 +122,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         }
 
         var propertyName = memberExpression.Member.Name;
-        
+
         // Create a nested builder to configure the sub-query
         var nestedBuilder = new ODataQueryBuilder<TSubEntity>();
         configure(nestedBuilder);
@@ -160,6 +164,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Key selector must be a member property expression.", nameof(keySelector));
         }
+
         return this;
     }
 
@@ -178,6 +183,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Key selector must be a member property expression.", nameof(keySelector));
         }
+
         return this;
     }
 
@@ -191,6 +197,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new InvalidOperationException("ThenBy can only be used after an OrderBy or OrderByDescending clause.");
         }
+
         if (keySelector.Body is MemberExpression memberExpression)
         {
             _queryParams["$orderby"] += $",{memberExpression.Member.Name}";
@@ -199,6 +206,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Key selector must be a member property expression.", nameof(keySelector));
         }
+
         return this;
     }
 
@@ -212,6 +220,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new InvalidOperationException("ThenByDescending can only be used after an OrderBy or OrderByDescending clause.");
         }
+
         if (keySelector.Body is MemberExpression memberExpression)
         {
             _queryParams["$orderby"] += $",{memberExpression.Member.Name} desc";
@@ -220,6 +229,7 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             throw new ArgumentException("Key selector must be a member property expression.", nameof(keySelector));
         }
+
         return this;
     }
 
@@ -230,8 +240,15 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
     /// </summary>
     public virtual ODataQueryBuilder<T> Top(int count)
     {
-        if(count > 0) _queryParams["$top"] = count.ToString();
-        else _queryParams.Remove("$top");
+        if (count > 0)
+        {
+            _queryParams["$top"] = count.ToString();
+        }
+        else
+        {
+            _queryParams.Remove("$top");
+        }
+
         return this;
     }
 
@@ -242,8 +259,15 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
     /// </summary>
     public virtual ODataQueryBuilder<T> Skip(int count)
     {
-        if(count > 0) _queryParams["$skip"] = count.ToString();
-        else _queryParams.Remove("$skip");
+        if (count > 0)
+        {
+            _queryParams["$skip"] = count.ToString();
+        }
+        else
+        {
+            _queryParams.Remove("$skip");
+        }
+
         return this;
     }
 
@@ -254,13 +278,23 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
     /// <param name="value">Set to true to include the count, false to remove it.</param>
     public virtual ODataQueryBuilder<T> Count(bool value = true)
     {
-        if (value) _queryParams["$count"] = "true";
-        else _queryParams.Remove("$count");
+        if (value)
+        {
+            _queryParams["$count"] = "true";
+        }
+        else
+        {
+            _queryParams.Remove("$count");
+        }
+
         return this;
     }
 
     /// <inheritdoc/>
-    public override string GetEntityTypeName() => $"{typeof(T).Name.ToLowerInvariant()}s";
+    public override string GetEntityTypeName()
+    {
+        return $"{typeof(T).Name.ToLowerInvariant()}s";
+    }
 
     /// <inheritdoc/>
     public override string ToQueryString()
@@ -270,12 +304,11 @@ public class ODataQueryBuilder<T> : ODataQueryBuilder
         {
             allParams["$expand"] = string.Join(",", _expandClauses);
         }
-        
+
         // URL-encode the value part of each query parameter to handle special characters correctly.
         return string.Join("&", allParams.Select(kvp => $"{kvp.Key}={WebUtility.UrlEncode(kvp.Value)}"));
     }
 }
-
 
 /// <summary>
 /// A helper class for fluently building OData $apply clauses for aggregation.
@@ -298,16 +331,18 @@ public class AggregationBuilder<T>
             {
                 _groupByProperties.Add(memberExpression.Member.Name);
             }
+
             // Handle cases where the property is boxed in a Convert expression
             else if (selector.Body is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression innerMemberExpression })
             {
-                 _groupByProperties.Add(innerMemberExpression.Member.Name);
+                _groupByProperties.Add(innerMemberExpression.Member.Name);
             }
             else
             {
                 throw new ArgumentException("GroupBy selectors must be member property expressions.", nameof(selectors));
             }
         }
+
         return this;
     }
 
@@ -327,6 +362,7 @@ public class AggregationBuilder<T>
         {
             throw new ArgumentException("Aggregate selector must be a member property expression.", nameof(selector));
         }
+
         return this;
     }
 
@@ -342,6 +378,7 @@ public class AggregationBuilder<T>
         {
             parts.Add($"aggregate({string.Join(",", _aggregations)})");
         }
+
         return string.Join("/", parts);
     }
 }

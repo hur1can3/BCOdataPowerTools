@@ -1,10 +1,11 @@
+using System;
+using System.Net.Http;
+
 using BusinessCentral.OData.Client.Configuration;
 using BusinessCentral.OData.Client.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
-using System;
-using System.Net.Http;
 
 namespace BusinessCentral.OData.Client.Extensions;
 
@@ -27,7 +28,7 @@ public static class BusinessCentralClientServiceCollectionExtensions
         Action<IHttpClientBuilder>? configureBuilder = null)
     {
         services.Configure(configureOptions);
-        
+
         var options = new BusinessCentralClientOptions();
         configureOptions(options);
 
@@ -38,6 +39,7 @@ public static class BusinessCentralClientServiceCollectionExtensions
             {
                 throw new InvalidOperationException("BaseUrl cannot be empty. Please configure it in BusinessCentralClientOptions.");
             }
+
             client.BaseAddress = new Uri(options.BaseUrl);
         })
         .AddPolicyHandler(GetRetryPolicy())

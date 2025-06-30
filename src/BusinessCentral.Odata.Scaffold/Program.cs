@@ -1,3 +1,7 @@
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 using BusinessCentral.OData.Client.Configuration;
 using BusinessCentral.OData.Client.Extensions;
 using BusinessCentral.OData.Client.Http;
@@ -7,9 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 // --- POCO Classes (Example of what the scaffolder tool generates) ---
 
@@ -76,7 +77,6 @@ public class SalesOrder
     public Customer? Customer { get; set; }
 }
 
-
 // --- Main Application ---
 public class Program
 {
@@ -93,11 +93,11 @@ public class Program
                     httpClientBuilder =>
                     {
                         // 2. Add a custom handler to inject the auth token on each request
-                        httpClientBuilder.AddHttpMessageHandler(() => 
+                        httpClientBuilder.AddHttpMessageHandler(() =>
                             new AuthenticationDelegatingHandler(configuration["Authentication:BearerToken"] ?? string.Empty));
                     }
                 );
-                
+
                 // 3. Register our main application logic service
                 services.AddHostedService<CronusDemoRunner>();
             })
@@ -136,8 +136,13 @@ public class CronusDemoRunner : IHostedService
         {
             _logger.LogError(ex, "An error occurred during the demo.");
         }
-        
+
         _logger.LogInformation("\n--- Demo Finished ---");
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 
     private async Task DemoSelectAndFilterAsync()
@@ -156,7 +161,7 @@ public class CronusDemoRunner : IHostedService
             response.Value?.ForEach(c => _logger.LogInformation("  - Customer: {Number}, Name: {Name}", c.Number, c.DisplayName));
         }
     }
-    
+
     private async Task DemoClientPagingAsync()
     {
         _logger.LogInformation("\n[2. DEMO: Client-Side Pagination - Use $top and $skip to manually page through items]");
@@ -178,7 +183,7 @@ public class CronusDemoRunner : IHostedService
     {
         _logger.LogInformation("\n[3. DEMO: Server-Side Pagination - Use GetAllPagesAsync to automatically follow nextLinks]");
         var query = new ODataQueryBuilder<Item>();
-            
+
         // This will automatically follow all @odata.nextLink pages until all items are retrieved.
         var allItems = await _bcClient.GetAllPagesAsync(query);
         _logger.LogInformation("  - Total items found across all pages: {Count}", allItems.Count);
@@ -189,9 +194,9 @@ public class CronusDemoRunner : IHostedService
         _logger.LogInformation("\n[4. DEMO: $expand - Get the most recent sales order and expand its related Customer entity]");
         var query = new ODataQueryBuilder<SalesOrder>()
             .OrderByDescending(so => so.OrderDate)
-            .Expand(so => so.Customer) // Expand the Customer navigation property
+            .Expand(so => so.Customer!) // Use the null-forgiving operator to ensure the type matches the 'class' constraint
             .Top(1);
-        
+
         var response = await _bcClient.GetEntitiesAsync(query);
         var latestOrder = response.Value?.FirstOrDefault();
 
@@ -207,17 +212,17 @@ public class CronusDemoRunner : IHostedService
     {
         _logger.LogInformation("\n[5. DEMO: Complex $filter - Find customers whose name contains 'School' OR whose balance is over 1000]");
         var query = new ODataQueryBuilder<Customer>()
-            .Filter(c => c.DisplayName.Contains("School") || c.Balance > 1000);
+            .Filter(c => (c.DisplayName != null && c.DisplayName.Contains("School", StringComparison.OrdinalIgnoreCase)) || (c.Balance.HasValue && c.Balance.Value > 1000));
 
         var response = await _bcClient.GetEntitiesAsync(query);
         _logger.LogInformation("  - Found {Count} customers matching the complex filter.", response.Value?.Count ?? 0);
         response.Value?.ForEach(c => _logger.LogInformation("    - Customer: {Number}, Name: {Name}", c.Number, c.DisplayName));
     }
-    
+
     private async Task DemoBatchQueryAsync()
     {
         _logger.LogInformation("\n[6. DEMO: $batch Query - Get top customer and top item in a single HTTP request]");
-        
+
         var customerQuery = new ODataQueryBuilder<Customer>().OrderByDescending(c => c.Balance).Top(1);
         var itemQuery = new ODataQueryBuilder<Item>().OrderByDescending(i => i.UnitPrice).Top(1);
 
@@ -242,10 +247,7 @@ public class CronusDemoRunner : IHostedService
             }
         }
     }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
-
 
 // --- Authentication Helper ---
 public class AuthenticationDelegatingHandler : DelegatingHandler
@@ -262,6 +264,7 @@ public class AuthenticationDelegatingHandler : DelegatingHandler
         {
             throw new InvalidOperationException("BearerToken is not configured. Please check your appsettings.json.");
         }
+
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
         return base.SendAsync(request, cancellationToken);
     }

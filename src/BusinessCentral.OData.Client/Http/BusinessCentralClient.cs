@@ -1,16 +1,17 @@
-using BusinessCentral.OData.Client.Configuration;
-using BusinessCentral.OData.Client.Exceptions;
-using BusinessCentral.OData.Client.Models;
-using BusinessCentral.OData.Client.Querying;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+
+using BusinessCentral.OData.Client.Configuration;
+using BusinessCentral.OData.Client.Exceptions;
+using BusinessCentral.OData.Client.Models;
+using BusinessCentral.OData.Client.Querying;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BusinessCentral.OData.Client.Http;
 
@@ -46,7 +47,6 @@ public interface IBusinessCentralClient
     /// <returns>An ODataResponse containing a list of individual batch responses.</returns>
     Task<ODataResponse<object>> SendJsonBatchAsync(CancellationToken cancellationToken = default, params ODataQueryBuilder[] builders);
 }
-
 
 /// <summary>
 /// The default implementation for IBusinessCentralClient.
@@ -99,8 +99,8 @@ public class BusinessCentralClient : IBusinessCentralClient
         queryBuilder.Top(0).Skip(0);
 
         var response = await GetEntitiesAsync(queryBuilder, cancellationToken).ConfigureAwait(false);
-        
-        while(response != null && response.IsSuccessStatusCode)
+
+        while (response != null && response.IsSuccessStatusCode)
         {
             if (response.Value != null)
             {
@@ -116,9 +116,9 @@ public class BusinessCentralClient : IBusinessCentralClient
 
             if (!string.IsNullOrEmpty(response.NextLink))
             {
-                 _logger.LogDebug("Following nextLink for pagination.");
-                 var nextResponse = await _httpClient.GetAsync(response.NextLink, cancellationToken).ConfigureAwait(false);
-                 response = await ProcessResponseAsync<T>(nextResponse, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Following nextLink for pagination.");
+                var nextResponse = await _httpClient.GetAsync(response.NextLink, cancellationToken).ConfigureAwait(false);
+                response = await ProcessResponseAsync<T>(nextResponse, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -130,7 +130,7 @@ public class BusinessCentralClient : IBusinessCentralClient
         _logger.LogInformation("Successfully fetched a total of {TotalCount} entities for {EntityName} across all pages.", allEntities.Count, typeof(T).Name);
         return allEntities;
     }
-    
+
     /// <inheritdoc/>
     public virtual async Task<ODataResponse<object>> SendJsonBatchAsync(CancellationToken cancellationToken = default, params ODataQueryBuilder[] builders)
     {
@@ -139,24 +139,25 @@ public class BusinessCentralClient : IBusinessCentralClient
         var requestItems = builders.Select((builder, index) =>
         {
             var entityName = builder.GetEntityTypeName();
+
             // The URL for JSON batching must be relative to the API version root.
             var relativeUrl = $"/companies({_options.CompanyId})/{entityName}?{builder.ToQueryString()}";
             return new ODataJsonBatchRequestItem
             {
                 Id = $"{index + 1}",
-                Url = relativeUrl
+                Url = relativeUrl,
             };
         }).ToArray();
 
         var batchRequest = new ODataJsonBatchRequest { Requests = requestItems };
         var requestUri = $"{_options.ApiVersion}/$batch";
-        
+
         _logger.LogDebug("Sending JSON batch POST request to {BatchEndpoint}", requestUri);
         var response = await _httpClient.PostAsJsonAsync(requestUri, batchRequest, _jsonOptions, cancellationToken).ConfigureAwait(false);
 
         return await ProcessResponseAsync<object>(response, cancellationToken).ConfigureAwait(false);
     }
-    
+
     /// <summary>
     /// Builds the request URI for a standard entity query. Can be overridden in a derived class for custom URL construction.
     /// </summary>
@@ -164,6 +165,7 @@ public class BusinessCentralClient : IBusinessCentralClient
     {
         var entityName = builder.GetEntityTypeName();
         var queryString = builder.ToQueryString();
+
         // The final URL is relative to the BaseAddress configured in HttpClient.
         return $"{_options.ApiVersion}/companies({_options.CompanyId})/{entityName}?{queryString}";
     }
@@ -178,16 +180,22 @@ public class BusinessCentralClient : IBusinessCentralClient
             var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var odataResponse = await JsonSerializer.DeserializeAsync<ODataResponse<T>>(responseStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
 
-            if (odataResponse == null) return new ODataResponse<T> { StatusCode = response.StatusCode };
-            
+            if (odataResponse == null)
+            {
+                return new ODataResponse<T> { StatusCode = response.StatusCode };
+            }
+
             odataResponse.StatusCode = response.StatusCode;
             return odataResponse;
         }
 
         string errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var requestUri = response.RequestMessage?.RequestUri;
-        _logger.LogError("API request to {RequestUri} failed with status {StatusCode}. Response: {ErrorContent}", 
-            requestUri, response.StatusCode, errorContent);
+        _logger.LogError(
+            "API request to {RequestUri} failed with status {StatusCode}. Response: {ErrorContent}",
+            requestUri,
+            response.StatusCode,
+            errorContent);
 
         ODataError? apiError = null;
         try
@@ -195,18 +203,17 @@ public class BusinessCentralClient : IBusinessCentralClient
             var errorDoc = JsonDocument.Parse(errorContent);
             if (errorDoc.RootElement.TryGetProperty("error", out var errorElement))
             {
-                 apiError = errorElement.Deserialize<ODataError>(_jsonOptions);
+                apiError = errorElement.Deserialize<ODataError>(_jsonOptions);
             }
         }
-        catch (JsonException ex) 
-        { 
+        catch (JsonException ex)
+        {
             _logger.LogError(ex, "Failed to parse API error response JSON for request {RequestUri}.", requestUri);
         }
-        
+
         throw new ODataException(
             $"API request failed with status code {response.StatusCode}",
             response.StatusCode,
-            apiError
-        );
+            apiError);
     }
 }

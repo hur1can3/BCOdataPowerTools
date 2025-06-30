@@ -1,5 +1,6 @@
-using BusinessCentral.OData.Client.Models;
 using System.Net;
+
+using BusinessCentral.OData.Client.Models;
 
 namespace BusinessCentral.OData.Client.Exceptions;
 
@@ -10,12 +11,12 @@ namespace BusinessCentral.OData.Client.Exceptions;
 public class ODataException : Exception
 {
     /// <summary>
-    /// The HTTP status code returned by the API.
+    /// Gets the HTTP status code returned by the API.
     /// </summary>
     public HttpStatusCode StatusCode { get; }
 
     /// <summary>
-    /// The detailed error information from the API, if available.
+    /// Gets the detailed error information from the API, if available.
     /// </summary>
     public ODataError? ApiError { get; }
 

@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("A modern, resilient, and extensible .NET client for interacting with the Microsof" +
     "t Dynamics 365 Business Central OData API."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74edd46c7983ccdd9ff6149773862ccec718aa93")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+abd95c18f10ef0d5b822c47ff6e83a68ec3c1866")]
 [assembly: System.Reflection.AssemblyProductAttribute("BusinessCentral.OData.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BusinessCentral.OData.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
